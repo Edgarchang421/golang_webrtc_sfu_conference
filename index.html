@@ -101,8 +101,10 @@
             if (!candidate) {
               return console.log('failed to parse candidate')
             }
-
             pc.addIceCandidate(candidate)
+
+          case 'keepalive':
+            console.log('keepalive')
         }
       }
 

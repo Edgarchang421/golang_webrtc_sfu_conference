@@ -269,7 +269,11 @@ func JoinMeeting(w http.ResponseWriter, r *http.Request) {
 	for {
 		select {
 		case <-keepAliveTicker.C:
-			if err := wsc.WriteString("keep alive"); err != nil {
+			if err := wsc.WriteJSON(
+				&websocketwebRTCMessage{
+					Event: "keepalive",
+				},
+			); err != nil {
 				keepAliveTicker.Stop()
 				if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 					Errorf("web socket keep alive Unexpected Close Error: %v", err)
