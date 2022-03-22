@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sync"
 	"time"
+	"webrtc_sfu_conference/conf"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
@@ -259,9 +260,8 @@ func signalingStateCheck(pc *webrtc.PeerConnection, status string) {
 func (r *ConferenceRoom) makeRoomInfoResponse() roomInfomation {
 	return roomInfomation{
 		RoomID:           r.RoomID,
-		RoomURL:          fmt.Sprintf("https://test.viuto-aiot.com/room/%s", r.RoomID.String()),
-		RoomWebSocketURL: fmt.Sprintf("wss://test.viuto-aiot.com/room/%s/webSocket", r.RoomID.String()),
-		TestRoomURL:      fmt.Sprintf("https://test.viuto-aiot.com/oldroom/%s", r.RoomID.String()),
+		RoomURL:          fmt.Sprintf("https://%s/room/%s", conf.Domain, r.RoomID.String()),
+		RoomWebSocketURL: fmt.Sprintf("wss://%s/room/%s/webSocket", conf.Domain, r.RoomID.String()),
 		CreatedTime:      r.createdTime,
 	}
 }
@@ -271,6 +271,5 @@ type roomInfomation struct {
 	RoomID           uuid.UUID `json:"roomID"`
 	RoomURL          string    `json:"roomURL"`
 	RoomWebSocketURL string    `json:"roomWebsocketURL"`
-	TestRoomURL      string    `json:"for_viuto_test_roomURL"`
 	CreatedTime      time.Time `json:"created_time"`
 }

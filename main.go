@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"time"
+	"webrtc_sfu_conference/conf"
 	"webrtc_sfu_conference/handlers"
 
 	"github.com/gorilla/mux"
@@ -24,7 +25,7 @@ func main() {
 	// start HTTP server
 	srv := &http.Server{
 		Handler: r,
-		Addr:    "0.0.0.0:8000",
+		Addr:    conf.Addr,
 		// Good practice: enforce timeouts for servers you create!
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,

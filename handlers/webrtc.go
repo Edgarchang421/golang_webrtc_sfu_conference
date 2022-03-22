@@ -10,6 +10,7 @@ import (
 	"sync"
 	"text/template"
 	"time"
+	"webrtc_sfu_conference/conf"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
@@ -82,7 +83,7 @@ func RoomPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	webSocketURL := fmt.Sprintf("ws://test.viuto-aiot.com/room/%s/webSocket", roomID.String())
+	webSocketURL := fmt.Sprintf("wss://%s/room/%s/webSocket", conf.Domain, roomID.String())
 
 	if err := oldIndexTemplate.Execute(w, webSocketURL); err != nil {
 		log.Fatal(err)
