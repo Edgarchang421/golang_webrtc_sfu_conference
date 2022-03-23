@@ -2,11 +2,15 @@
 <html>
   <head>
     <meta charset="utf-8">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
   </head>
   <body>
     <h3> Rooms Info </h3>
     <div id="info"></div>
     <button id="update">update rooms information</button>
+
+    <button id="create_new_room">create new room</button>
+    <div id="new_room_id"></div>
   </body>
 
   <script>
@@ -20,6 +24,16 @@
                 event: 'update'
             }
             ))
+      })
+
+      document.getElementById('create_new_room').addEventListener('click', async ()  => {
+        $.ajax({
+            type:"POST",
+            url: "https://edgarchang.net/create/room",
+            success: function( result ) {
+                $( "#new_room_id" ).html( result.roomURL);
+            }
+            });
       })
 
       ws.onclose = function(evt) {
