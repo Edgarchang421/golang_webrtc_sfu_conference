@@ -19,6 +19,9 @@ func main() {
 	r.HandleFunc("/room/{roomid}/webSocket", handlers.JoinMeeting)
 	// room page index.html handler
 	r.HandleFunc("/room/{roomid}", handlers.RoomPage)
+
+	r.HandleFunc("/index", handlers.IndexPage)
+	r.HandleFunc("/roomsinfo/webSocket", handlers.RoomInfoSignaling)
 	// conference room id API
 	r.HandleFunc("/getRoomsID", handlers.GetRoomIDArray)
 

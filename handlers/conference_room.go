@@ -69,7 +69,10 @@ func (r *ConferenceRoom) connectionsNumberCheck() {
 		time.Sleep(10 * time.Minute)
 		if len(r.conns) == 0 {
 			delete(allRooms, r.RoomID)
-			Infof("delete room ID: %v", r.RoomID)
+			// Infof("delete room ID: %v", r.RoomID)
+			signalStr := fmt.Sprintf("room ID %s deleted", r.RoomID.String())
+
+			signalingServer.UpdateSignal <- signalStr
 		}
 	}
 }

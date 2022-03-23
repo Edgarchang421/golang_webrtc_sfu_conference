@@ -19,12 +19,7 @@ import (
 	"github.com/pion/webrtc/v3"
 )
 
-var allRooms map[uuid.UUID]*ConferenceRoom
-
-func init() {
-	// init ConferenceRoom map
-	allRooms = make(map[uuid.UUID]*ConferenceRoom)
-}
+var allRooms = make(map[uuid.UUID]*ConferenceRoom)
 
 // webSocketUpgrader 使用於webRTC peerConnection建立，需要做 CORS Domain 給外部的服務作為連接使用，因此always return true
 // 此func主要作為避免跨站點攻擊 cross-site request forgery。
@@ -48,7 +43,11 @@ func CreateRoom(w http.ResponseWriter, r *http.Request) {
 
 	// check peerConnection num
 	go conferenceroom.connectionsNumberCheck()
-	Infof("room ID %s created.", newRoomID)
+	// Infof("room ID %s created.", newRoomID)
+	signalStr := fmt.Sprintf("room ID %s created.", newRoomID.String())
+
+	// new room created signal
+	signalingServer.UpdateSignal <- signalStr
 
 	roomInfo := conferenceroom.makeRoomInfoResponse()
 	w.Header().Set("Content-Type", "application/json")
@@ -84,6 +83,23 @@ func RoomPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	webSocketURL := fmt.Sprintf("wss://%s/room/%s/webSocket", conf.Domain, roomID.String())
+
+	if err := oldIndexTemplate.Execute(w, webSocketURL); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func IndexPage(w http.ResponseWriter, r *http.Request) {
+	var oldIndexTemplate = &template.Template{}
+
+	html, err := ioutil.ReadFile("rooms_info.html")
+	if err != nil {
+		Errorf(err.Error())
+		return
+	}
+	oldIndexTemplate = template.Must(template.New("").Parse(string(html)))
+
+	webSocketURL := fmt.Sprintf("wss://%s/roomsinfo/webSocket", conf.Domain)
 
 	if err := oldIndexTemplate.Execute(w, webSocketURL); err != nil {
 		log.Fatal(err)

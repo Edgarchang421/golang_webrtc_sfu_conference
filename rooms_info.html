@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+  </head>
+  <body>
+    <h3> Rooms Info </h3>
+    <div id="info"></div>
+    <button id="update">update rooms information</button>
+  </body>
+
+  <script>
+      const infoDiv = document.querySelector("div#info")
+      var info
+      var ws = new WebSocket("{{.}}")
+
+      document.getElementById('update').addEventListener('click', async ()  => {
+        ws.send(JSON.stringify(
+            {
+                event: 'update'
+            }
+            ))
+      })
+
+      ws.onclose = function(evt) {
+        window.alert("Websocket has closed")
+      }
+
+      ws.onmessage = function(evt) {
+        let msg = JSON.parse(evt.data)
+        if (!msg) {
+          return console.log('failed to parse msg')
+        }
+
+        switch (msg.event) {
+          case 'keepalive':
+            console.log('keepalive')
+            return
+          case'info':
+            info = JSON.parse(msg.data)
+            infoDiv.textContent = JSON.stringify(info)
+        }
+      }
+
+      ws.onerror = function(evt) {
+        console.log("ERROR: " + evt.data)
+      }
+  </script>
+</html>
