@@ -19,7 +19,7 @@ import (
 	"github.com/pion/webrtc/v3"
 )
 
-var allRooms = newWebRTCServer()
+var webrtcSrv = newWebRTCServer()
 
 type webRTCServer struct {
 	Rooms map[uuid.UUID]*ConferenceRoom
@@ -68,7 +68,7 @@ func RoomPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, ok := allRooms.Rooms[roomID]; !ok {
+	if _, ok := webrtcSrv.Rooms[roomID]; !ok {
 		// room doesn't exist]
 		Errorf("roomID %v not exist error", roomID)
 		return
@@ -170,13 +170,13 @@ func JoinMeeting(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, ok := allRooms.Rooms[roomID]; !ok {
+	if _, ok := webrtcSrv.Rooms[roomID]; !ok {
 		Errorf("room %v not exist", roomID)
 		http.Error(w, fmt.Sprintf("room %v doesn't exist", roomID), http.StatusBadRequest)
 		return
 	}
 
-	room := allRooms.Rooms[roomID]
+	room := webrtcSrv.Rooms[roomID]
 
 	room.Lock()
 	room.conns = append(room.conns, clientConnectionState{pc, wsc})
@@ -353,9 +353,9 @@ func JoinMeeting(w http.ResponseWriter, r *http.Request) {
 
 // GetRoomIDArray 單次獲取現在room info的API
 func GetRoomIDArray(w http.ResponseWriter, r *http.Request) {
-	roomsInfo := make([]roomInfomation, 0, len(allRooms.Rooms))
-	for i := range allRooms.Rooms {
-		roomsInfo = append(roomsInfo, allRooms.Rooms[i].makeRoomInfoResponse())
+	roomsInfo := make([]roomInfomation, 0, len(webrtcSrv.Rooms))
+	for i := range webrtcSrv.Rooms {
+		roomsInfo = append(roomsInfo, webrtcSrv.Rooms[i].makeRoomInfoResponse())
 	}
 
 	// sorted by time
@@ -375,7 +375,7 @@ func GetRoomIDArray(w http.ResponseWriter, r *http.Request) {
 
 // dispatchKeyFrame sends a keyframe to all PeerConnections, used everytime a new user joins the call
 func DispatchKeyFrameToAll() {
-	for _, room := range allRooms.Rooms {
+	for _, room := range webrtcSrv.Rooms {
 		room.Lock()
 		defer room.Unlock()
 
