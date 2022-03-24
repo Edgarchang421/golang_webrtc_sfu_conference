@@ -75,7 +75,9 @@ func newConferenceRoom() *ConferenceRoom {
 		createdTime:  time.Now(),
 	}
 
+	allRooms.Lock()
 	allRooms.Rooms[newRoomID] = room
+	allRooms.Unlock()
 
 	// check peerConnection num
 	go room.connectionsNumberCheck()
@@ -93,9 +95,11 @@ func (r *ConferenceRoom) connectionsNumberCheck() {
 	for {
 		time.Sleep(10 * time.Minute)
 		if len(r.conns) == 0 {
+
 			allRooms.Lock()
 			delete(allRooms.Rooms, r.RoomID)
 			allRooms.Unlock()
+
 			// Infof("delete room ID: %v", r.RoomID)
 			signalStr := fmt.Sprintf("room ID %s deleted", r.RoomID.String())
 
