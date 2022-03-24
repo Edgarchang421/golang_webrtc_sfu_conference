@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net/http"
 	"time"
 	"webrtc_sfu_conference/conf"
@@ -35,5 +34,8 @@ func main() {
 	}
 
 	handlers.Infof("server start")
-	log.Fatal(srv.ListenAndServe())
+	if err := srv.ListenAndServe(); err != nil {
+		handlers.Infof("server listen and serve error: %v", err)
+		return
+	}
 }

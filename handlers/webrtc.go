@@ -28,28 +28,9 @@ var webSocketUpgrader = websocket.Upgrader{
 }
 
 func CreateRoom(w http.ResponseWriter, r *http.Request) {
-	newRoomID := uuid.New()
+	room := newConferenceRoom()
 
-	// init map
-	newRoomLocalTracks := map[string]*webrtc.TrackLocalStaticRTP{}
-
-	conferenceroom := ConferenceRoom{
-		RoomID:       newRoomID,
-		clientTracks: newRoomLocalTracks,
-		createdTime:  time.Now(),
-	}
-
-	allRooms[newRoomID] = &conferenceroom
-
-	// check peerConnection num
-	go conferenceroom.connectionsNumberCheck()
-	// Infof("room ID %s created.", newRoomID)
-	signalStr := fmt.Sprintf("room ID %s created.", newRoomID.String())
-
-	// new room created signal
-	signalingServer.UpdateSignal <- signalStr
-
-	roomInfo := conferenceroom.makeRoomInfoResponse()
+	roomInfo := room.makeRoomInfoResponse()
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(roomInfo); err != nil {
 		Errorf("json encode err: %v", err)
@@ -60,7 +41,7 @@ func CreateRoom(w http.ResponseWriter, r *http.Request) {
 func RoomPage(w http.ResponseWriter, r *http.Request) {
 	var oldIndexTemplate = &template.Template{}
 
-	indexHTML, err := ioutil.ReadFile("index.html")
+	indexHTML, err := ioutil.ReadFile("./static/room.html")
 	if err != nil {
 		panic(err)
 	}
@@ -92,7 +73,7 @@ func RoomPage(w http.ResponseWriter, r *http.Request) {
 func IndexPage(w http.ResponseWriter, r *http.Request) {
 	var oldIndexTemplate = &template.Template{}
 
-	html, err := ioutil.ReadFile("rooms_info.html")
+	html, err := ioutil.ReadFile("./static/index.html")
 	if err != nil {
 		Errorf(err.Error())
 		return

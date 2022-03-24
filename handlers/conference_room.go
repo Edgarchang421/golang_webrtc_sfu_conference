@@ -63,6 +63,31 @@ type ConferenceRoom struct {
 	sync.RWMutex
 }
 
+func newConferenceRoom() *ConferenceRoom {
+	newRoomID := uuid.New()
+
+	// init map
+	newRoomLocalTracks := make(map[string]*webrtc.TrackLocalStaticRTP)
+
+	room := &ConferenceRoom{
+		RoomID:       newRoomID,
+		clientTracks: newRoomLocalTracks,
+		createdTime:  time.Now(),
+	}
+
+	allRooms[newRoomID] = room
+
+	// check peerConnection num
+	go room.connectionsNumberCheck()
+	// Infof("room ID %s created.", newRoomID)
+	signalStr := fmt.Sprintf("room ID %s created.", newRoomID.String())
+
+	// new room created signal
+	signalingServer.UpdateSignal <- signalStr
+
+	return room
+}
+
 // connectionsNumberCheck gc機制?會導致建立過久conference room無法使用
 func (r *ConferenceRoom) connectionsNumberCheck() {
 	for {
