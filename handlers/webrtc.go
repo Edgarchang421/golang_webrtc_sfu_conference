@@ -19,7 +19,18 @@ import (
 	"github.com/pion/webrtc/v3"
 )
 
-var allRooms = make(map[uuid.UUID]*ConferenceRoom)
+var allRooms = newWebRTCServer()
+
+type webRTCServer struct {
+	Rooms map[uuid.UUID]*ConferenceRoom
+	sync.RWMutex
+}
+
+func newWebRTCServer() *webRTCServer {
+	return &webRTCServer{
+		Rooms: make(map[uuid.UUID]*ConferenceRoom),
+	}
+}
 
 // webSocketUpgrader 使用於webRTC peerConnection建立，需要做 CORS Domain 給外部的服務作為連接使用，因此always return true
 // 此func主要作為避免跨站點攻擊 cross-site request forgery。
@@ -57,7 +68,7 @@ func RoomPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, ok := allRooms[roomID]; !ok {
+	if _, ok := allRooms.Rooms[roomID]; !ok {
 		// room doesn't exist]
 		Errorf("roomID %v not exist error", roomID)
 		return
@@ -159,13 +170,13 @@ func JoinMeeting(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, ok := allRooms[roomID]; !ok {
+	if _, ok := allRooms.Rooms[roomID]; !ok {
 		Errorf("room %v not exist", roomID)
 		http.Error(w, fmt.Sprintf("room %v doesn't exist", roomID), http.StatusBadRequest)
 		return
 	}
 
-	room := allRooms[roomID]
+	room := allRooms.Rooms[roomID]
 
 	room.Lock()
 	room.conns = append(room.conns, clientConnectionState{pc, wsc})
@@ -342,9 +353,9 @@ func JoinMeeting(w http.ResponseWriter, r *http.Request) {
 
 // GetRoomIDArray 單次獲取現在room info的API
 func GetRoomIDArray(w http.ResponseWriter, r *http.Request) {
-	roomsInfo := make([]roomInfomation, 0, len(allRooms))
-	for i := range allRooms {
-		roomsInfo = append(roomsInfo, allRooms[i].makeRoomInfoResponse())
+	roomsInfo := make([]roomInfomation, 0, len(allRooms.Rooms))
+	for i := range allRooms.Rooms {
+		roomsInfo = append(roomsInfo, allRooms.Rooms[i].makeRoomInfoResponse())
 	}
 
 	// sorted by time
@@ -364,7 +375,7 @@ func GetRoomIDArray(w http.ResponseWriter, r *http.Request) {
 
 // dispatchKeyFrame sends a keyframe to all PeerConnections, used everytime a new user joins the call
 func DispatchKeyFrameToAll() {
-	for _, room := range allRooms {
+	for _, room := range allRooms.Rooms {
 		room.Lock()
 		defer room.Unlock()
 

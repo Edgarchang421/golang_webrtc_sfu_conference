@@ -75,7 +75,7 @@ func newConferenceRoom() *ConferenceRoom {
 		createdTime:  time.Now(),
 	}
 
-	allRooms[newRoomID] = room
+	allRooms.Rooms[newRoomID] = room
 
 	// check peerConnection num
 	go room.connectionsNumberCheck()
@@ -93,7 +93,9 @@ func (r *ConferenceRoom) connectionsNumberCheck() {
 	for {
 		time.Sleep(10 * time.Minute)
 		if len(r.conns) == 0 {
-			delete(allRooms, r.RoomID)
+			allRooms.Lock()
+			delete(allRooms.Rooms, r.RoomID)
+			allRooms.Unlock()
 			// Infof("delete room ID: %v", r.RoomID)
 			signalStr := fmt.Sprintf("room ID %s deleted", r.RoomID.String())
 
@@ -105,7 +107,7 @@ func (r *ConferenceRoom) connectionsNumberCheck() {
 // dispatchKeyFrame sends a keyframe to all PeerConnections, used everytime a new user joins the call
 func (r *ConferenceRoom) dispatchKeyFrame() {
 	// 檢查此room是否還儲存於全局變數rooms中
-	if _, ok := allRooms[r.RoomID]; !ok {
+	if _, ok := allRooms.Rooms[r.RoomID]; !ok {
 		return
 	}
 
@@ -130,7 +132,7 @@ func (r *ConferenceRoom) dispatchKeyFrame() {
 // Add to list of tracks and fire renegotation for all PeerConnections
 func (r *ConferenceRoom) addTrack(t *webrtc.TrackRemote) *webrtc.TrackLocalStaticRTP {
 	// 檢查此room是否還儲存於全局變數rooms中
-	if _, ok := allRooms[r.RoomID]; !ok {
+	if _, ok := allRooms.Rooms[r.RoomID]; !ok {
 		return nil
 	}
 
@@ -153,7 +155,7 @@ func (r *ConferenceRoom) addTrack(t *webrtc.TrackRemote) *webrtc.TrackLocalStati
 // Remove from list of tracks and fire renegotation for all PeerConnections
 func (r *ConferenceRoom) removeTrack(t *webrtc.TrackLocalStaticRTP) {
 	// 檢查此room是否還儲存於全局變數rooms中
-	if _, ok := allRooms[r.RoomID]; !ok {
+	if _, ok := allRooms.Rooms[r.RoomID]; !ok {
 		return
 	}
 
@@ -176,7 +178,7 @@ func (r *ConferenceRoom) removeTrack(t *webrtc.TrackLocalStaticRTP) {
 // 5. create & set local offer SDP，然後透過websocket發送至client端。
 func (r *ConferenceRoom) signalPeerConnections() {
 	// 檢查此room是否還儲存於全局變數rooms中
-	if _, ok := allRooms[r.RoomID]; !ok {
+	if _, ok := allRooms.Rooms[r.RoomID]; !ok {
 		return
 	}
 

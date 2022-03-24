@@ -166,8 +166,8 @@ func RoomInfoSignaling(w http.ResponseWriter, r *http.Request) {
 func getIoomsInfo() map[string]interface{} {
 	roomsInfo := make(map[string]interface{})
 
-	for k, room := range allRooms {
-		state := make([]map[string]interface{}, len(allRooms[k].conns))
+	for k, room := range allRooms.Rooms {
+		state := make([]map[string]interface{}, len(allRooms.Rooms[k].conns))
 
 		for i, client := range room.conns {
 			info := map[string]interface{}{
